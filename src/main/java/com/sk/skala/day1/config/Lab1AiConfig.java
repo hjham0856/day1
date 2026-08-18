@@ -18,6 +18,7 @@ public class Lab1AiConfig {
                         항상 한국어 한 문장으로만 요약한다.
                         """)
                 .defaultOptions(OpenAiChatOptions.builder()
+                        .model("gpt-4o-mini")
                         .temperature(0.0)
                         .maxTokens(120))
                 .build();

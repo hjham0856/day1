@@ -24,15 +24,21 @@ public class OrderSummaryService {
         Order order = orders.findByIdAndOwnerId(orderId, userId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId, userId));
 
-        String summary = summaryChat.prompt()
-                .user(user -> user.text("주문번호 {id}, 상품 {item}, 상태 {status}, 도착예정일 {eta}를 "
-                                + "주어진 정보만 사용해 한국어 한 문장으로 요약해 줘. 추측하지 마.")
-                        .param("id", order.getId())
-                        .param("item", order.getItem())
-                        .param("status", order.getStatus().label())
-                        .param("eta", order.getEta()))
-                .call()
-                .content();
+        String summary;
+        try {
+            summary = summaryChat.prompt()
+                    .user(user -> user.text("주문번호 {id}, 상품 {item}, 상태 {status}, 도착예정일 {eta}를 "
+                                    + "주어진 정보만 사용해 한국어 한 문장으로 요약해 줘. 추측하지 마.")
+                            .param("id", order.getId())
+                            .param("item", order.getItem())
+                            .param("status", order.getStatus().label())
+                            .param("eta", order.getEta()))
+                    .call()
+                    .content();
+        }
+        catch (Exception e) {
+            summary = order.getItem() + " · " + order.getStatus().label();
+        }
 
         return new SummaryResponse(order.getId(), summary);
     }
