@@ -14,6 +14,10 @@ java {
 }
 
 repositories {
+	// Maven Central이 429(Too Many Requests)를 반환할 때를 대비한 공식 GCS 미러
+	maven {
+		url = 'https://maven-central-asia.storage-download.googleapis.com/maven2'
+	}
 	mavenCentral()
 }
 

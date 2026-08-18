@@ -17,9 +17,9 @@ public class Lab1AiConfig {
                         주문 정보에 없는 내용은 추측하지 않는다.
                         항상 한국어 한 문장으로만 요약한다.
                         """)
-                .defaultOptions(OpenAiChatOptions.builder()
-                        .temperature(0.0)
-                        .maxTokens(120))
+                .defaultOptions(OpenAiChatOptions.builder())
+                        //.temperature(0.0)
+                        //.maxTokens(120))
                 .build();
     }
 }
