@@ -1,29 +1,40 @@
 package com.sk.skala.day1.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
-import lombok.Data;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
 
 @Entity
-@Data
+@Table(name = "orders")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Order {
+
     @Id
-    @GeneratedValue
+    @Column(nullable = false, length = 32)
+    private String id;
 
-    Long id;
-    String Sender;
-    String Reciever;
-    String productName;
+    @Column(name = "owner_id", nullable = false, length = 64)
+    private String ownerId;
 
-    public Order(){}
+    @Column(nullable = false, length = 200)
+    private String item;
 
-    public Order(Long id,String Sender,String Reciever,String productName){
-        this.id=id; 
-        this.Sender=Sender; 
-        this.Reciever=Reciever; 
-        this.productName=productName;
-    }
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    private OrderStatus status;
 
+    @Column(nullable = false)
+    private LocalDate eta;
 
 }
