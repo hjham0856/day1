@@ -3,6 +3,7 @@ package com.sk.skala.day1.web;
 import com.sk.skala.day1.service.OrderSummaryService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -23,6 +24,9 @@ class OrderSummaryControllerTests {
 
     @MockitoBean
     private OrderSummaryService service;
+
+    @MockitoBean
+    private VectorStore vectorStore;
 
     @Test
     void 정상_요청은_주문번호와_요약을_반환한다() throws Exception {

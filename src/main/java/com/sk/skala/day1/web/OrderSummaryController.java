@@ -1,5 +1,7 @@
 package com.sk.skala.day1.web;
 
+import java.util.List;
+
 import com.sk.skala.day1.service.OrderSummaryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -8,25 +10,29 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
+
+
 @RestController
-@RequestMapping("/lab1/orders")
 @Tag(name = "Day1 실습: 주문 요약")
+@RequiredArgsConstructor
 public class OrderSummaryController {
 
     private final OrderSummaryService service;
+    private final VectorStore vectorStore;
+    
 
-    public OrderSummaryController(OrderSummaryService service) {
-        this.service = service;
-    }
-
-    @GetMapping(value = "/{orderId}/summary", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/lab1/orders/{orderId}/summary", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
             summary = "주문 한 문장 요약",
             description = "본인 주문만 요약된다. 모델을 호출하므로 비용이 발생한다.")
@@ -51,5 +57,24 @@ public class OrderSummaryController {
             @Parameter(description = "조회 주체", example = "user1")
             @RequestParam String userId) {
         return service.summarize(orderId, userId);
+    }
+
+    @GetMapping("/lab2/retrieve")
+    public List<Chunk> retrieve(@RequestParam String q, @RequestParam(defaultValue = "4") int topK){
+        return vectorStore.similaritySearch(SearchRequest.builder().query(q).topK(topK)
+        .similarityThreshold(0.5)
+        .build())
+        .stream()
+        .map(d -> new Chunk(String.valueOf(d.getMetadata().get("source"))
+        ,d.getScore(), snippet(d.getText(), 120)))
+        .toList();
+    }
+
+    private static String snippet(String text, int max) {
+        if (text == null) {
+            return "";
+        }
+        String flat = text.strip().replaceAll("\\s+", " ");
+        return flat.length() <= max ? flat : flat.substring(0, max) + "...";
     }
 }

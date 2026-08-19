@@ -4,25 +4,26 @@ import com.sk.skala.day1.domain.Order;
 import com.sk.skala.day1.repository.OrderRepository;
 import com.sk.skala.day1.web.OrderNotFoundException;
 import com.sk.skala.day1.web.SummaryResponse;
+
+import lombok.RequiredArgsConstructor;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class OrderSummaryService {
 
     private static final Logger log = LoggerFactory.getLogger(OrderSummaryService.class);
 
     private final OrderRepository orders;
     private final ChatClient summaryChat;
-
-    public OrderSummaryService(OrderRepository orders, ChatClient summaryChat) {
-        this.orders = orders;
-        this.summaryChat = summaryChat;
-    }
 
     public SummaryResponse summarize(String orderId, String userId) {
         Order order = orders.findByIdAndOwnerId(orderId, userId)
