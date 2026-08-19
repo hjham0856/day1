@@ -46,7 +46,11 @@ dependencyManagement {
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+	useJUnitPlatform {
+		if (!project.hasProperty('eval')) {
+			excludeTags 'eval'
+		}
+	}
 }
 
 tasks.withType(JavaCompile).configureEach {

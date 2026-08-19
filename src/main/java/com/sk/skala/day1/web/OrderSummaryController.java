@@ -17,8 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 
@@ -30,7 +29,7 @@ public class OrderSummaryController {
 
     private final OrderSummaryService service;
     private final VectorStore vectorStore;
-    
+    private final ChatClient chatClient;
 
     @GetMapping(value = "/lab1/orders/{orderId}/summary", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
@@ -76,5 +75,26 @@ public class OrderSummaryController {
         }
         String flat = text.strip().replaceAll("\\s+", " ");
         return flat.length() <= max ? flat : flat.substring(0, max) + "...";
+    }
+
+    public AnswerDto ask(String question) {
+        var docs = retrieve(question, 4);
+        if (docs.isEmpty()) {
+                return AnswerDto.unknown();
+        }
+        return chatClient.prompt()
+                .system("""
+                                아래 [근거]만 사용해 답한다. 근거에 없으면 "확인되지 않습니다"라고 답한다.
+                                추측하지 않는다. 답변 끝에 사용한 출처를 [출처: 파일명] 형식으로 남긴다.
+                """)
+                .user(u -> u.text("[근거]\n{context}\n\n[질문] {question}")
+                        .param("context", docs.toString())
+                        .param("question", question))
+                .call()
+                .entity(AnswerDto.class);
+    }
+
+    record AnswerDto(String answer, List<String> sources, boolean grounded) {
+        static AnswerDto unknown() { return new AnswerDto("확인되지 않습니다.", List.of(), false); }
     }
 }
