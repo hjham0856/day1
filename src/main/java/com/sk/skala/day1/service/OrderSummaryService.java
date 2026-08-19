@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +23,8 @@ public class OrderSummaryService {
     private static final Logger log = LoggerFactory.getLogger(OrderSummaryService.class);
 
     private final OrderRepository orders;
+
+    @Qualifier("summaryChatClient")
     private final ChatClient summaryChat;
 
     public SummaryResponse summarize(String orderId, String userId) {

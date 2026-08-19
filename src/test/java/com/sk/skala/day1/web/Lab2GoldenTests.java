@@ -2,6 +2,8 @@ package com.sk.skala.day1.web;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sk.skala.day1.service.Lab2IngestService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -25,6 +27,14 @@ class Lab2GoldenTests {
 
     @Autowired
     private OrderSummaryController service;
+
+    @Autowired
+    private Lab2IngestService ingest;
+
+    // 벡터 스토어가 인메모리라 평가 전에 문서를 넣어 두어야 한다.
+    @BeforeEach void 문서_적재() throws Exception {
+        ingest.ingestAll();
+    }
 
     @Test void 골든_세트_평가() throws Exception {
         var golden = mapper.readValue(resource("golden.json"),

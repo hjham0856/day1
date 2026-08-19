@@ -3,6 +3,7 @@ package com.sk.skala.day1.web;
 import com.sk.skala.day1.service.OrderSummaryService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -27,6 +28,10 @@ class OrderSummaryControllerTests {
 
     @MockitoBean
     private VectorStore vectorStore;
+
+    // 컨트롤러가 @Qualifier("lab2ChatClient")로 받으므로 목 빈 이름을 명시한다.
+    @MockitoBean(name = "lab2ChatClient")
+    private ChatClient lab2ChatClient;
 
     @Test
     void 정상_요청은_주문번호와_요약을_반환한다() throws Exception {

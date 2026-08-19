@@ -1,5 +1,7 @@
 package com.sk.skala.day1.service;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.ai.document.Document;
@@ -8,6 +10,7 @@ import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.stereotype.Service;
 
 import com.sk.skala.day1.web.IngestResult;
@@ -17,7 +20,25 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class Lab2IngestService {
+
+    private static final String DOCS_PATTERN = "classpath:/lab2-docs/*.md";
+    private static final String VERSION = "v1";
+
     private final VectorStore vectorStore;
+    private final ResourcePatternResolver resources;
+
+    /** lab2-docs/*.md를 전부 적재한다. source는 확장자를 뗀 파일명(golden.json의 src와 같은 값). */
+    public List<IngestResult> ingestAll() throws IOException {
+        List<IngestResult> results = new ArrayList<>();
+        for (Resource doc : resources.getResources(DOCS_PATTERN)) {
+            String filename = doc.getFilename();
+            if (filename == null) {
+                continue;
+            }
+            results.add(ingest(doc, filename.replaceFirst("\\.md$", ""), VERSION));
+        }
+        return results;
+    }
 
     public IngestResult ingest(Resource doc, String source, String version) {
         var reader = new TextReader(doc);
