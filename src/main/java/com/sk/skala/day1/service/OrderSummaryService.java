@@ -4,6 +4,8 @@ import com.sk.skala.day1.domain.Order;
 import com.sk.skala.day1.repository.OrderRepository;
 import com.sk.skala.day1.web.OrderNotFoundException;
 import com.sk.skala.day1.web.SummaryResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 public class OrderSummaryService {
+
+    private static final Logger log = LoggerFactory.getLogger(OrderSummaryService.class);
 
     private final OrderRepository orders;
     private final ChatClient summaryChat;
@@ -37,6 +41,7 @@ public class OrderSummaryService {
                     .content();
         }
         catch (Exception e) {
+            log.warn("AI 주문 요약 실패 - 기본 정보로 폴백합니다. orderId={}", order.getId(), e);
             summary = order.getItem() + " · " + order.getStatus().label();
         }
 
