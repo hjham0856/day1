@@ -1,9 +1,12 @@
 package com.sk.skala.day1.web;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.sk.skala.day1.service.OrderSummaryService;
+import com.sk.skala.day1.tool.OrderTools;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -24,6 +27,8 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.web.bind.annotation.PostMapping;
+
 
 
 @RestController
@@ -35,6 +40,7 @@ public class OrderSummaryController {
 
     private final OrderSummaryService service;
     private final VectorStore vectorStore;
+    private final OrderTools orderTools;
 
     @Qualifier("lab2ChatClient")
     private final ChatClient chatClient;
@@ -96,7 +102,8 @@ public class OrderSummaryController {
         return flat.length() <= max ? flat : flat.substring(0, max) + "...";
     }
 
-    public AnswerDto ask(String question) {
+    @PostMapping("/lab2/ask")
+    public AnswerDto ask(@RequestParam String question, @RequestParam String userId) {
         // 근거는 미리보기(snippet)가 아니라 청크 전문을 넘긴다.
         List<Document> docs = search(question, 4);
         if (docs.isEmpty()) {
@@ -107,13 +114,14 @@ public class OrderSummaryController {
                 .collect(Collectors.joining("\n"));
 
         return chatClient.prompt()
+                .tools(orderTools)
+                .toolContext(Map.of("userId", userId))
                 .system("""
                         아래 [근거]만 사용해 한국어로 답한다. 추측하지 않는다.
                         근거에 있는 숫자와 표현은 원문 그대로 인용한다.
-                        근거로 답할 수 없으면 answer를 정확히 "문서에 없음"으로 한다.
                         sources에는 답변에 실제로 사용한 근거의 source 값만 담는다.
                         답할 수 없었다면 sources는 빈 배열로 둔다.
-                        grounded는 근거로 답했으면 true, "문서에 없음"이면 false로 한다.
+                        grounded는 근거로 답했으면 true, 아니면 false로 한다.
                         """)
                 .user(u -> u.text("[근거]\n{context}\n\n[질문] {question}")
                         .param("context", context)
