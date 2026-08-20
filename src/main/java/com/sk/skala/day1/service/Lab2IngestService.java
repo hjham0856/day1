@@ -27,35 +27,30 @@ public class Lab2IngestService {
     private final VectorStore vectorStore;
     private final ResourcePatternResolver resources;
 
-    /** lab2-docs/*.md를 전부 적재한다. source는 확장자를 뗀 파일명(golden.json의 src와 같은 값). */
     public List<IngestResult> ingestAll() throws IOException {
         List<IngestResult> results = new ArrayList<>();
         for (Resource doc : resources.getResources(DOCS_PATTERN)) {
             String filename = doc.getFilename();
-            if (filename == null) {
-                continue;
+            if (filename != null) {
+                results.add(ingest(doc, filename.replaceFirst("\\.md$", ""), VERSION));
             }
-            results.add(ingest(doc, filename.replaceFirst("\\.md$", ""), VERSION));
         }
         return results;
     }
 
     public IngestResult ingest(Resource doc, String source, String version) {
         var reader = new TextReader(doc);
-
         reader.getCustomMetadata().put("source", source);
         reader.getCustomMetadata().put("version", version);
 
         var splitter = TokenTextSplitter.builder()
-            .withChunkSize(400)
-            .withMinChunkSizeChars(200)
-            .build();
+                .withChunkSize(400)
+                .withMinChunkSizeChars(200)
+                .build();
         List<Document> chunks = splitter.apply(reader.get());
 
-        vectorStore.delete(new FilterExpressionBuilder()
-            .eq("source", source).build());
+        vectorStore.delete(new FilterExpressionBuilder().eq("source", source).build());
         vectorStore.add(chunks);
-
         return new IngestResult(source, chunks.size());
     }
 }
